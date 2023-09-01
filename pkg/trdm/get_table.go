@@ -62,8 +62,9 @@ type GetTableRequestElement struct {
 	privateKey    *rsa.PrivateKey
 	Input         struct {
 		TRDM struct {
-			PhysicalName  string `xml:"physicalName"`
-			ReturnContent string `xml:"returnContent"`
+			PhysicalName                string `xml:"physicalName"`
+			ReturnContent               string `xml:"returnContent"`
+			ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
 		}
 	}
 }
@@ -99,23 +100,26 @@ type GetTableUpdater interface {
 	GetTable(appCtx appcontext.AppContext, physicalName string, lastUpdate string) error
 }
 
-func NewGetTable(physicalName string, securityToken string, privateKey *rsa.PrivateKey, soapClient SoapCaller) GetTableUpdater {
+func NewGetTable(physicalName string, lastUpdateDateTime string, securityToken string, privateKey *rsa.PrivateKey, soapClient SoapCaller) GetTableUpdater {
 	return &GetTableRequestElement{
 		securityToken: securityToken,
 		privateKey:    privateKey,
 		soapClient:    soapClient,
 		Input: struct {
 			TRDM struct {
-				PhysicalName  string `xml:"physicalName"`
-				ReturnContent string `xml:"returnContent"`
+				PhysicalName                string `xml:"physicalName"`
+				ReturnContent               string `xml:"returnContent"`
+				ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
 			}
 		}{
 			TRDM: struct {
-				PhysicalName  string `xml:"physicalName"`
-				ReturnContent string `xml:"returnContent"`
+				PhysicalName                string `xml:"physicalName"`
+				ReturnContent               string `xml:"returnContent"`
+				ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
 			}{
-				PhysicalName:  physicalName,
-				ReturnContent: fmt.Sprintf("%t", true),
+				PhysicalName:                physicalName,
+				ReturnContent:               fmt.Sprintf("%t", true),
+				ContentUpdatedSinceDateTime: lastUpdateDateTime,
 			},
 		},
 	}
