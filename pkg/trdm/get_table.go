@@ -60,13 +60,7 @@ type GetTableRequestElement struct {
 	soapClient    SoapCaller
 	securityToken string
 	privateKey    *rsa.PrivateKey
-	Input         struct {
-		TRDM struct {
-			PhysicalName                string `xml:"physicalName"`
-			ReturnContent               string `xml:"returnContent"`
-			ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
-		}
-	}
+	Input         Input `xml:"input"`
 }
 
 type output struct {
@@ -100,23 +94,23 @@ type GetTableUpdater interface {
 	GetTable(appCtx appcontext.AppContext, physicalName string, lastUpdate string) error
 }
 
+type Input struct {
+	TRDM TRDM `xml:"TRDM"`
+}
+
+type TRDM struct {
+	PhysicalName                string `xml:"physicalName"`
+	ReturnContent               string `xml:"returnContent"`
+	ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
+}
+
 func NewGetTable(physicalName string, lastUpdateDateTime string, securityToken string, privateKey *rsa.PrivateKey, soapClient SoapCaller) GetTableUpdater {
 	return &GetTableRequestElement{
 		securityToken: securityToken,
 		privateKey:    privateKey,
 		soapClient:    soapClient,
-		Input: struct {
-			TRDM struct {
-				PhysicalName                string `xml:"physicalName"`
-				ReturnContent               string `xml:"returnContent"`
-				ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
-			}
-		}{
-			TRDM: struct {
-				PhysicalName                string `xml:"physicalName"`
-				ReturnContent               string `xml:"returnContent"`
-				ContentUpdatedSinceDateTime string `xml:"contentUpdatedSinceDateTime"`
-			}{
+		Input: Input{
+			TRDM: TRDM{
 				PhysicalName:                physicalName,
 				ReturnContent:               fmt.Sprintf("%t", true),
 				ContentUpdatedSinceDateTime: lastUpdateDateTime,
@@ -181,7 +175,7 @@ func (d *GetTableRequestElement) GetTable(appCtx appcontext.AppContext, physical
 		}
 
 		if len(loaRecords) > 0 {
-			if err := setupSoapCall(d, appCtx, physicalName); err != nil {
+			if err := setupSoapCall(d, appCtx, physicalName, lastUpdate); err != nil {
 				return err
 			}
 		}
@@ -191,7 +185,7 @@ func (d *GetTableRequestElement) GetTable(appCtx appcontext.AppContext, physical
 			return fetchErr
 		}
 		if len(tacRecords) > 0 {
-			if err := setupSoapCall(d, appCtx, physicalName); err != nil {
+			if err := setupSoapCall(d, appCtx, physicalName, lastUpdate); err != nil {
 				return err
 			}
 		}
@@ -206,13 +200,19 @@ func (d *GetTableRequestElement) GetTable(appCtx appcontext.AppContext, physical
 //	appCtx - application context
 //	physicalName - table name (TAC or LOA)
 //	returns error
-func setupSoapCall(d *GetTableRequestElement, appCtx appcontext.AppContext, physicalName string) error {
+func setupSoapCall(d *GetTableRequestElement, appCtx appcontext.AppContext, physicalName string, contentUpdatedSinceDateTime string) error {
 	gosoap.SetCustomEnvelope("soapenv", map[string]string{
 		"xmlns:soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
 		"xmlns:ret":     "http://ReturnTablePackage/",
 	})
 	params := GetTableRequestElement{
-		Input: d.Input,
+		Input: Input{
+			TRDM: TRDM{
+				PhysicalName:                physicalName,
+				ReturnContent:               fmt.Sprintf("%t", true),
+				ContentUpdatedSinceDateTime: contentUpdatedSinceDateTime,
+			},
+		},
 	}
 
 	marshaledBody, marshalErr := xml.Marshal(params)
