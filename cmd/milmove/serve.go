@@ -806,7 +806,16 @@ func serveFunction(cmd *cobra.Command, args []string) error {
 
 	// TRDM SOAP Request
 	trdmIsEnabled := v.GetBool(cli.TRDMIsEnabled)
-	if trdmIsEnabled {
+
+	// Do not execute LastTableUpdate in development environemnt
+	env := v.GetString(cli.EnvironmentFlag)
+	isDevEnv := env == "development"
+	if isDevEnv {
+		logger.Info(fmt.Sprintf("Skipping LastTableUpdate in the %s environemnt", env))
+	}
+
+	// Execute LastTableUpdate if TRDM is enabled and environment is not development
+	if trdmIsEnabled && !isDevEnv {
 		// Call the initial SOAP call for LastTableUpdate on server start and once per day
 		err := trdm.LastTableUpdate(v, tlsConfig)
 		if err != nil {
