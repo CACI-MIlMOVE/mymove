@@ -95,7 +95,7 @@ require (
 	golang.org/x/oauth2 v0.10.0
 	golang.org/x/text v0.12.0
 	golang.org/x/tools v0.12.0
-	google.golang.org/grpc v1.57.0
+	google.golang.org/grpc v1.57.1
 	gopkg.in/dnaeon/go-vcr.v3 v3.1.2
 	gotest.tools/gotestsum v1.10.1
 	pault.ag/go/pksigner v1.0.2
